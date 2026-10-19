@@ -43,6 +43,15 @@ function Navbar() {
               </Link>
             </>
           )}
+          {isAuthenticated && (
+            <>
+              <Link
+                to="/my-bookings"
+                className="text-gray-300 hover:text-white transition">
+                My Bookings
+              </Link>
+            </>
+          )}
 
           {isAuthenticated && (
             <>

@@ -105,7 +105,7 @@ function MovieDetails() {
               </p>
 
               <Link
-                to={`/shows/movie/${movie.movieId}`}
+                to={`/movies/${movie.movieId}/theaters`}
                 className="inline-block mt-8 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-semibold transition">
                 Book Tickets
               </Link>

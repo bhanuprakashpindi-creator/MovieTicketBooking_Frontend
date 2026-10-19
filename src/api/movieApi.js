@@ -57,3 +57,18 @@ export const getMoviesSortedByRating = () => {
 export const getMoviesSortedByReleaseDate = () => {
   return api.get("/api/movies/sort/release-date");
 };
+
+// Create movie
+export const createMovie = (movieData) => {
+  return api.post("/api/movies", movieData);
+};
+
+// Update movie
+export const updateMovie = (movieId, movieData) => {
+  return api.put(`/api/movies/${movieId}`, movieData);
+};
+
+// Delete movie
+export const deleteMovie = (movieId) => {
+  return api.delete(`/api/movies/${movieId}`);
+};

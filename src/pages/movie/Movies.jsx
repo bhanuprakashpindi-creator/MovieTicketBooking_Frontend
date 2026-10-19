@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import {
   getAllMovies,
@@ -12,6 +12,7 @@ import {
 } from "../../api/movieApi";
 
 import MovieGrid from "../../components/movie/MovieGrid";
+import useDebounce from "../../hooks/useDebounce";
 
 function Movies() {
   const [movies, setMovies] = useState([]);
@@ -25,6 +26,8 @@ function Movies() {
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
+  const isInitialMount = useRef(true);
 
   const [genre, setGenre] = useState("");
 
@@ -106,17 +109,56 @@ function Movies() {
   };
 
   // =====================================================
-  // SEARCH
+  // DEBOUNCED SEARCH EFFECT
+  // =====================================================
+
+  useEffect(() => {
+    // Avoid running on the very first mount since fetchMovies() handles initial page load
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const executeDebouncedSearch = async () => {
+      const query = debouncedSearch.trim();
+
+      if (!query) {
+        setPage(0);
+        fetchMovies();
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await searchMovies(query);
+        console.log("DEBOUNCED SEARCH RESULT:", response.data);
+        setMovies(response.data || []);
+        setTotalPages(0);
+      } catch (err) {
+        console.error("Debounced Search Failed:", err);
+        setError("Failed to search movies.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    executeDebouncedSearch();
+  }, [debouncedSearch]);
+
+  // =====================================================
+  // SEARCH (INSTANT ON SUBMIT)
   // =====================================================
 
   const handleSearch = async (event) => {
-    event.preventDefault();
+    if (event) event.preventDefault();
 
-    if (!search.trim()) {
+    const query = search.trim();
+
+    if (!query) {
       setPage(0);
-
       fetchMovies();
-
       return;
     }
 
@@ -124,16 +166,12 @@ function Movies() {
     setError("");
 
     try {
-      const response = await searchMovies(search.trim());
-
+      const response = await searchMovies(query);
       console.log("SEARCH RESULT:", response.data);
-
-      setMovies(response.data);
-
+      setMovies(response.data || []);
       setTotalPages(0);
-    } catch (error) {
-      console.error("Search Failed:", error);
-
+    } catch (err) {
+      console.error("Search Failed:", err);
       setError("Failed to search movies.");
     } finally {
       setLoading(false);
@@ -146,9 +184,7 @@ function Movies() {
 
   const handleClearSearch = () => {
     setSearch("");
-
     setPage(0);
-
     fetchMovies();
   };
 
@@ -301,17 +337,24 @@ function Movies() {
         ================================================= */}
 
         <form onSubmit={handleSearch} className="flex gap-3 mb-10 max-w-2xl">
-          <input
-            type="text"
-            placeholder="Search For Movies..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 outline-none focus:border-red-500"
-          />
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search For Movies..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 outline-none focus:border-red-500 pr-24"
+            />
+            {search.trim() && search !== debouncedSearch && (
+              <span className="absolute right-4 top-3.5 text-xs text-yellow-400 font-medium animate-pulse">
+                Searching...
+              </span>
+            )}
+          </div>
 
           <button
             type="submit"
-            className="px-6 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition">
+            className="px-6 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition font-semibold">
             Search
           </button>
 
@@ -345,16 +388,16 @@ function Movies() {
             }}
             className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg">
             <option value="">Genre</option>
-
-            <option value="Action">Action</option>
-
-            <option value="Comedy">Comedy</option>
-
-            <option value="Drama">Drama</option>
-
-            <option value="Thriller">Thriller</option>
-
-            <option value="Romance">Romance</option>
+            <option value="ACTION">Action</option>
+            <option value="ADVENTURE">Adventure</option>
+            <option value="ANIMATION">Animation</option>
+            <option value="COMEDY">Comedy</option>
+            <option value="CRIME">Crime</option>
+            <option value="DRAMA">Drama</option>
+            <option value="HORROR">Horror</option>
+            <option value="ROMANCE">Romance</option>
+            <option value="SCI_FI">Sci-Fi</option>
+            <option value="THRILLER">Thriller</option>
           </select>
 
           {/* LANGUAGE */}
@@ -372,14 +415,12 @@ function Movies() {
             }}
             className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg">
             <option value="">Language</option>
-
-            <option value="English">English</option>
-
-            <option value="Telugu">Telugu</option>
-
-            <option value="Hindi">Hindi</option>
-
-            <option value="Tamil">Tamil</option>
+            <option value="ENGLISH">English</option>
+            <option value="TELUGU">Telugu</option>
+            <option value="HINDI">Hindi</option>
+            <option value="TAMIL">Tamil</option>
+            <option value="KANNADA">Kannada</option>
+            <option value="MALAYALAM">Malayalam</option>
           </select>
 
           {/* CERTIFICATE */}
@@ -397,12 +438,10 @@ function Movies() {
             }}
             className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg">
             <option value="">Certificate</option>
-
             <option value="U">U</option>
-
             <option value="UA">UA</option>
-
             <option value="A">A</option>
+            <option value="S">S</option>
           </select>
 
           {/* RATING */}
