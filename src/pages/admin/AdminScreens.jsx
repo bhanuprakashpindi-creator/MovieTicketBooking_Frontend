@@ -276,11 +276,10 @@ function AdminScreens() {
         {/* Global Notification Banner */}
         {alert.message && (
           <div
-            className={`mb-8 p-4 rounded-xl border flex items-center justify-between gap-4 ${
-              alert.type === "success"
+            className={`mb-8 p-4 rounded-xl border flex items-center justify-between gap-4 ${alert.type === "success"
                 ? "bg-green-500/10 border-green-500 text-green-400"
                 : "bg-red-500/10 border-red-500 text-red-400"
-            }`}>
+              }`}>
             <span>{alert.message}</span>
             <button
               onClick={() => setAlert({ type: "", message: "" })}
@@ -455,11 +454,10 @@ function AdminScreens() {
               {filteredScreens.map((screen) => (
                 <div
                   key={screen.screenId}
-                  className={`bg-slate-800 border rounded-2xl p-6 shadow-lg transition flex flex-col justify-between ${
-                    editingScreenId === screen.screenId
+                  className={`bg-slate-800 border rounded-2xl p-6 shadow-lg transition flex flex-col justify-between ${editingScreenId === screen.screenId
                       ? "border-yellow-400 ring-2 ring-yellow-400/30"
                       : "border-slate-700 hover:border-slate-600"
-                  }`}>
+                    }`}>
                   <div>
                     {/* Screen Header */}
                     <div className="flex items-start justify-between gap-3 mb-4">

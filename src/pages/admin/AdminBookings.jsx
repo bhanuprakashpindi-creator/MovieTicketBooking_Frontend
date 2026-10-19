@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { getAllBookings, cancelBooking } from "../../api/bookingApi";
 import useDebounce from "../../hooks/useDebounce";
 
@@ -16,10 +15,12 @@ function AdminBookings() {
   const fetchBookingsList = async () => {
     try {
       setLoading(true);
+
       const response = await getAllBookings();
       setBookings(response.data || []);
     } catch (err) {
       console.error("Failed to load bookings:", err);
+
       setAlert({
         type: "error",
         message: "Failed to load bookings list from the server.",
@@ -37,19 +38,24 @@ function AdminBookings() {
     const confirmed = window.confirm(
       `Are you sure you want to cancel booking #${booking.bookingId} for customer "${booking.userName || "User"}"? This will release reserved seats.`,
     );
+
     if (!confirmed) return;
 
     try {
       setCancellingId(booking.bookingId);
       setAlert({ type: "", message: "" });
+
       await cancelBooking(booking.bookingId);
+
       setAlert({
         type: "success",
         message: `Booking #${booking.bookingId} cancelled successfully.`,
       });
+
       await fetchBookingsList();
     } catch (err) {
       console.error("Failed to cancel booking:", err);
+
       setAlert({
         type: "error",
         message:
@@ -70,8 +76,10 @@ function AdminBookings() {
     (b) => b.bookingStatus === "CONFIRMED",
   ).length;
 
+  // Search + Status Filter
   const filteredBookings = bookings.filter((b) => {
     const query = debouncedSearchTerm.toLowerCase();
+
     const matchesSearch =
       String(b.bookingId).includes(query) ||
       b.userName?.toLowerCase().includes(query) ||
@@ -87,26 +95,23 @@ function AdminBookings() {
   });
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-slate-900 text-white px-6 py-12">
+    <div className="min-h-screen bg-slate-900 text-white px-6 py-12">
       <div className="max-w-7xl mx-auto">
-        {/* Navigation & Header */}
+        {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
-            <Link
-              to="/admin"
-              className="text-sm font-semibold text-yellow-400 hover:text-yellow-300 flex items-center gap-1 mb-2 transition">
-              ← Back to Admin Dashboard
-            </Link>
             <h1 className="text-4xl font-bold">Booking Management</h1>
+
             <p className="text-gray-400 mt-1">
-              Audit customer reservations, monitor attendance, and process cancellations.
+              Audit customer reservations, monitor attendance, and process
+              cancellations.
             </p>
           </div>
 
           <button
             onClick={fetchBookingsList}
             disabled={loading}
-            className="bg-slate-800 hover:bg-slate-700 text-gray-300 border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition">
+            className="bg-slate-800 hover:bg-slate-700 text-gray-300 border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-50">
             🔄 Refresh List
           </button>
         </div>
@@ -117,6 +122,7 @@ function AdminBookings() {
             <span className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
               Total Reservations
             </span>
+
             <p className="text-3xl font-extrabold text-white mt-2">
               {bookings.length}
             </p>
@@ -126,6 +132,7 @@ function AdminBookings() {
             <span className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
               Confirmed Bookings
             </span>
+
             <p className="text-3xl font-extrabold text-green-400 mt-2">
               {confirmedCount}
             </p>
@@ -135,21 +142,22 @@ function AdminBookings() {
             <span className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
               Total Revenue (Confirmed)
             </span>
+
             <p className="text-3xl font-extrabold text-yellow-400 mt-2">
               ₹{totalRevenue.toLocaleString()}
             </p>
           </div>
         </div>
 
-        {/* Global Notification Banner */}
+        {/* Notification */}
         {alert.message && (
           <div
-            className={`mb-8 p-4 rounded-xl border flex items-center justify-between gap-4 ${
-              alert.type === "success"
-                ? "bg-green-500/10 border-green-500 text-green-400"
-                : "bg-red-500/10 border-red-500 text-red-400"
-            }`}>
+            className={`mb-8 p-4 rounded-xl border flex items-center justify-between gap-4 ${alert.type === "success"
+              ? "bg-green-500/10 border-green-500 text-green-400"
+              : "bg-red-500/10 border-red-500 text-red-400"
+              }`}>
             <span>{alert.message}</span>
+
             <button
               onClick={() => setAlert({ type: "", message: "" })}
               className="text-sm font-bold opacity-75 hover:opacity-100">
@@ -158,10 +166,11 @@ function AdminBookings() {
           </div>
         )}
 
-        {/* Filter and Search Bar */}
+        {/* Filter and Search */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-400">Filter Status:</span>
+
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -172,7 +181,6 @@ function AdminBookings() {
             </select>
           </div>
 
-          {/* Search Bar */}
           <div className="w-full sm:w-80 relative">
             <input
               type="text"
@@ -181,6 +189,7 @@ function AdminBookings() {
               placeholder="Search by ID, user, movie, seats..."
               className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white outline-none focus:border-yellow-400 transition pr-20"
             />
+
             {searchTerm.trim() && searchTerm !== debouncedSearchTerm && (
               <span className="absolute right-3 top-2.5 text-xs text-yellow-400 animate-pulse">
                 Filtering...
@@ -189,7 +198,7 @@ function AdminBookings() {
           </div>
         </div>
 
-        {/* Bookings Table / List */}
+        {/* Bookings Table */}
         {loading ? (
           <div className="text-center py-24 text-gray-400">
             <p className="text-lg">Loading bookings registry...</p>
@@ -197,6 +206,7 @@ function AdminBookings() {
         ) : filteredBookings.length === 0 ? (
           <div className="text-center py-16 bg-slate-800 border border-slate-700 rounded-2xl">
             <div className="text-5xl mb-3">📊</div>
+
             <p className="text-gray-400 text-lg">
               {searchTerm || statusFilter !== "ALL"
                 ? "No reservations match your search or filter."
@@ -220,9 +230,11 @@ function AdminBookings() {
                     <th className="py-4 px-6 text-center">Actions</th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-slate-700/60">
                   {filteredBookings.map((b) => {
                     const isConfirmed = b.bookingStatus === "CONFIRMED";
+
                     return (
                       <tr
                         key={b.bookingId}
@@ -230,20 +242,25 @@ function AdminBookings() {
                         <td className="py-4 px-6 font-bold text-yellow-400">
                           #{b.bookingId}
                         </td>
+
                         <td className="py-4 px-6 font-medium text-white">
                           {b.userName || "Customer"}
                         </td>
+
                         <td className="py-4 px-6 font-semibold text-white">
                           {b.movieTitle}
                         </td>
+
                         <td className="py-4 px-6">
                           <span className="block font-medium text-white">
                             {b.screenName}
                           </span>
+
                           <span className="text-xs text-gray-400">
                             {b.theaterName}
                           </span>
                         </td>
+
                         <td className="py-4 px-6 text-xs font-medium text-gray-200">
                           {b.showDateTime ? (
                             new Date(b.showDateTime).toLocaleString([], {
@@ -254,6 +271,7 @@ function AdminBookings() {
                             "N/A"
                           )}
                         </td>
+
                         <td className="py-4 px-6">
                           <div className="flex flex-wrap gap-1 max-w-xs">
                             {b.seatNumbers?.map((s) => (
@@ -265,19 +283,21 @@ function AdminBookings() {
                             ))}
                           </div>
                         </td>
+
                         <td className="py-4 px-6 font-bold text-red-400 text-base">
                           ₹{b.totalAmount}
                         </td>
+
                         <td className="py-4 px-6">
                           <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                              isConfirmed
-                                ? "bg-green-500/20 text-green-400 border border-green-500/40"
-                                : "bg-red-500/20 text-red-400 border border-red-500/40"
-                            }`}>
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${isConfirmed
+                              ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                              : "bg-red-500/20 text-red-400 border border-red-500/40"
+                              }`}>
                             ● {b.bookingStatus}
                           </span>
                         </td>
+
                         <td className="py-4 px-6 text-center">
                           {isConfirmed ? (
                             <button

@@ -1,42 +1,64 @@
 import { createContext, useContext, useState } from "react";
-
 import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
+function getUserFromToken(token) {
+  if (!token) return null;
 
-  const [user, setUser] = useState(() => {
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) return null;
-    try {
-      return jwtDecode(storedToken);
-    } catch {
+  try {
+    const decodedUser = jwtDecode(token);
+
+    // Check token expiration
+    if (decodedUser.exp && decodedUser.exp * 1000 < Date.now()) {
       localStorage.removeItem("token");
       return null;
     }
+
+    return decodedUser;
+  } catch {
+    localStorage.removeItem("token");
+    return null;
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(() => {
+    const storedToken = localStorage.getItem("token");
+
+    if (!getUserFromToken(storedToken)) {
+      return null;
+    }
+
+    return storedToken;
+  });
+
+  const [user, setUser] = useState(() => {
+    const storedToken = localStorage.getItem("token");
+
+    return getUserFromToken(storedToken);
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const storedToken = localStorage.getItem("token");
-    if (!storedToken) return false;
-    try {
-      jwtDecode(storedToken);
-      return true;
-    } catch {
-      return false;
-    }
+
+    return getUserFromToken(storedToken) !== null;
   });
 
   const login = (newToken) => {
-    localStorage.setItem("token", newToken);
+    const decodedUser = getUserFromToken(newToken);
 
-    const decodedUser = jwtDecode(newToken);
+    if (!decodedUser) {
+      return false;
+    }
+
+    localStorage.setItem("token", newToken);
 
     setToken(newToken);
     setUser(decodedUser);
     setIsAuthenticated(true);
+
+    return true;
   };
 
   const logout = () => {
@@ -55,7 +77,8 @@ export function AuthProvider({ children }) {
         isAuthenticated,
         login,
         logout,
-      }}>
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

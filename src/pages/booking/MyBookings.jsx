@@ -8,17 +8,17 @@ function MyBookings() {
   const [error, setError] = useState("");
   const [actionMessage, setActionMessage] = useState({ type: "", text: "" });
   const [cancellingId, setCancellingId] = useState(null);
+  const [filterTab, setFilterTab] = useState("ALL"); // ALL, UPCOMING, PAST
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
       setError("");
       const response = await getMyBookings();
-      console.log("BOOKINGS:", response.data);
       setBookings(response.data || []);
     } catch (err) {
       console.error("Failed to fetch bookings:", err);
-      setError("Failed to load your bookings. Please try again later.");
+      setError("Failed to load your reservations. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -30,22 +30,23 @@ function MyBookings() {
 
   const handleCancelBooking = async (bookingId) => {
     const confirmCancel = window.confirm(
-      "Are you sure you want to cancel this booking? This action cannot be undone.",
+      "Are you sure you want to cancel this booking? This will release your reserved seats immediately."
     );
     if (!confirmCancel) return;
 
     try {
       setCancellingId(bookingId);
       setActionMessage({ type: "", text: "" });
-      const response = await cancelBooking(bookingId);
-      console.log("Cancelled Booking:", response.data);
+      await cancelBooking(bookingId);
 
       setBookings((prev) =>
-        prev.filter((booking) => booking.bookingId !== bookingId),
+        prev.map((b) =>
+          b.bookingId === bookingId ? { ...b, bookingStatus: "CANCELLED" } : b
+        )
       );
       setActionMessage({
         type: "success",
-        text: `Booking #${bookingId} has been successfully cancelled.`,
+        text: `Booking #${bookingId} was successfully cancelled.`,
       });
     } catch (err) {
       console.error("Failed to cancel the booking:", err);
@@ -62,150 +63,247 @@ function MyBookings() {
 
   const now = new Date();
 
+  // Filter bookings based on selected tab
+  const filteredBookings = bookings.filter((b) => {
+    const isFuture = new Date(b.showDateTime) > now;
+    if (filterTab === "UPCOMING") return isFuture && b.bookingStatus === "CONFIRMED";
+    if (filterTab === "PAST") return !isFuture || b.bookingStatus === "CANCELLED";
+    return true;
+  });
+
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-slate-900 text-white flex items-center justify-center">
-        <p className="text-xl text-gray-400">Loading your bookings...</p>
+      <div className="min-h-screen bg-bg-primary text-text-primary px-4 sm:px-6 py-12">
+        <div className="max-w-4xl mx-auto space-y-6 animate-pulse">
+          <div className="h-8 bg-bg-surface rounded-xl w-48 mx-auto" />
+          <div className="h-4 bg-bg-surface rounded-md w-64 mx-auto" />
+          <div className="space-y-4 pt-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 bg-bg-surface border border-border rounded-2xl" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-slate-900 text-white px-6 py-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-10 text-center">
-          <p className="text-red-500 font-semibold uppercase tracking-wider">
-            History
-          </p>
-          <h1 className="text-4xl font-bold mt-2">My Bookings</h1>
-          <p className="text-gray-400 mt-2">
-            View your upcoming and past movie ticket reservations.
+    <div className="min-h-screen bg-bg-primary text-text-primary px-4 sm:px-6 py-10 sm:py-14">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* HEADER */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 bg-accent-primary/10 border border-accent-primary/30 px-3.5 py-1 rounded-full text-xs font-bold text-accent-primary uppercase tracking-widest mb-3">
+            Ticket Wallet
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-text-primary tracking-tight">
+            My Bookings
+          </h1>
+          <p className="text-text-secondary text-sm sm:text-base mt-1">
+            Access your active cinema tickets, view show details, and manage reservations.
           </p>
         </div>
 
+        {/* FEEDBACK BANNER */}
         {actionMessage.text && (
           <div
-            className={`mb-6 p-4 rounded-xl border ${
+            className={`p-4 rounded-xl text-sm border flex items-center justify-between ${
               actionMessage.type === "success"
-                ? "bg-green-500/10 border-green-500 text-green-400"
-                : "bg-red-500/10 border-red-500 text-red-400"
-            }`}>
-            {actionMessage.text}
+                ? "bg-accent-emerald/10 border-accent-emerald/30 text-accent-emerald"
+                : "bg-accent-primary/10 border-accent-primary/30 text-accent-primary"
+            }`}
+          >
+            <span>{actionMessage.text}</span>
+            <button
+              onClick={() => setActionMessage({ type: "", text: "" })}
+              className="text-xs font-bold underline hover:no-underline ml-4"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500 text-red-400 rounded-xl">
-            {error}
+          <div className="p-4 bg-accent-primary/10 border border-accent-primary/30 text-accent-primary rounded-xl text-sm flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={fetchBookings}
+              className="text-xs font-bold underline hover:no-underline ml-4"
+            >
+              Retry
+            </button>
           </div>
         )}
 
+        {/* FILTER TABS */}
+        {bookings.length > 0 && (
+          <div className="flex items-center justify-center gap-2 bg-bg-surface border border-border p-1.5 rounded-2xl max-w-sm mx-auto text-xs font-semibold">
+            {[
+              { id: "ALL", label: `All (${bookings.length})` },
+              {
+                id: "UPCOMING",
+                label: `Upcoming (${
+                  bookings.filter(
+                    (b) => new Date(b.showDateTime) > now && b.bookingStatus === "CONFIRMED"
+                  ).length
+                })`,
+              },
+              { id: "PAST", label: "Past / Cancelled" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setFilterTab(tab.id)}
+                className={`flex-1 py-2 px-3 rounded-xl transition ${
+                  filterTab === tab.id
+                    ? "bg-accent-primary text-white shadow-button"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
         {bookings.length === 0 ? (
-          <div className="text-center bg-slate-800 border border-slate-700 rounded-2xl py-16 px-6">
+          <div className="text-center bg-bg-surface border border-border rounded-3xl py-16 px-6 max-w-lg mx-auto shadow-card">
             <div className="text-5xl mb-4">🎟️</div>
-            <h3 className="text-xl font-semibold mb-2">No Bookings Found</h3>
-            <p className="text-gray-400 mb-6">
-              You haven't booked any movie tickets yet.
+            <h3 className="text-xl font-bold text-text-primary mb-2">No Bookings Yet</h3>
+            <p className="text-text-muted text-sm mb-6">
+              You haven't booked any movie tickets yet. Explore current blockbusters and reserve your seats now!
             </p>
             <Link
               to="/movies"
-              className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition">
-              Explore Movies
+              className="inline-block px-8 py-3.5 bg-accent-primary hover:bg-accent-hover text-white rounded-xl font-bold text-sm shadow-button transition"
+            >
+              Browse Movies
             </Link>
           </div>
+        ) : filteredBookings.length === 0 ? (
+          <div className="text-center py-12 text-text-muted text-sm bg-bg-surface border border-border rounded-2xl">
+            No bookings found in this category.
+          </div>
         ) : (
+          /* BOOKINGS LIST */
           <div className="space-y-6">
-            {bookings.map((booking) => {
+            {filteredBookings.map((booking) => {
               const showTime = new Date(booking.showDateTime);
-              const canCancel =
-                now < showTime && booking.bookingStatus === "CONFIRMED";
+              const isFuture = now < showTime;
+              const canCancel = isFuture && booking.bookingStatus === "CONFIRMED";
+
+              const formattedDate = showTime.toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              });
+              const formattedTime = showTime.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
 
               return (
                 <div
                   key={booking.bookingId}
-                  className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg hover:border-slate-600 transition">
-                  {/* Header */}
-                  <div className="flex flex-wrap justify-between items-start gap-4 mb-5 border-b border-slate-700/80 pb-4">
+                  className="bg-bg-surface border border-border hover:border-border/80 rounded-3xl p-6 sm:p-7 shadow-card transition-all duration-300"
+                >
+                  {/* Top: Booking ID & Status */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
                     <div>
-                      <span className="text-xs uppercase tracking-wider text-red-500 font-semibold">
-                        Booking #{booking.bookingId}
+                      <span className="text-xs font-bold text-accent-gold uppercase tracking-wider">
+                        Booking Reference #{booking.bookingId}
                       </span>
-                      <h2 className="text-2xl font-bold mt-1 text-white">
+                      <h2 className="text-xl sm:text-2xl font-black text-text-primary mt-0.5">
                         {booking.movieTitle}
                       </h2>
                     </div>
 
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                      className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase inline-flex items-center gap-1.5 ${
                         booking.bookingStatus === "CONFIRMED"
-                          ? "bg-green-500/20 text-green-400 border border-green-500/40"
-                          : "bg-red-500/20 text-red-400 border border-red-500/40"
-                      }`}>
+                          ? "bg-accent-emerald/15 text-accent-emerald border border-accent-emerald/30"
+                          : "bg-accent-primary/15 text-accent-primary border border-accent-primary/30"
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          booking.bookingStatus === "CONFIRMED"
+                            ? "bg-accent-emerald"
+                            : "bg-accent-primary"
+                        }`}
+                      />
                       {booking.bookingStatus}
                     </span>
                   </div>
 
-                  {/* Details */}
-                  <div className="grid sm:grid-cols-2 gap-4 text-sm text-gray-300">
+                  {/* Middle: Cinema Details & Showtime */}
+                  <div className="grid sm:grid-cols-2 gap-4 py-5 text-sm">
                     <div>
-                      <p className="text-gray-400 text-xs uppercase tracking-wider">
-                        Theater & Screen
+                      <p className="text-xs text-text-muted font-medium uppercase tracking-wider">
+                        Cinema & Screen
                       </p>
-                      <p className="font-semibold text-white mt-1">
-                        🏢 {booking.theaterName} • 🎬 {booking.screenName}
+                      <p className="font-semibold text-text-primary mt-1">
+                        🏛️ {booking.theaterName || "Cinema Hall"}
+                      </p>
+                      <p className="text-xs text-text-secondary mt-0.5">
+                        🎬 {booking.screenName || "Screen"}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-gray-400 text-xs uppercase tracking-wider">
-                        Show Date & Time
+                      <p className="text-xs text-text-muted font-medium uppercase tracking-wider">
+                        Date & Showtime
                       </p>
-                      <p className="font-semibold text-white mt-1">
-                        📅 {showTime.toLocaleString([], {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
+                      <p className="font-semibold text-text-primary mt-1">
+                        📅 {formattedDate}
+                      </p>
+                      <p className="text-xs text-accent-gold font-bold mt-0.5">
+                        ⏰ {formattedTime}
                       </p>
                     </div>
                   </div>
 
-                  {/* Seats */}
-                  <div className="mt-5 pt-4 border-t border-slate-700/60">
-                    <p className="text-xs uppercase tracking-wider text-gray-400 mb-2">
+                  {/* Seats badges */}
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-xs text-text-muted font-medium uppercase tracking-wider mb-2">
                       Reserved Seats ({booking.seatNumbers?.length || 0})
                     </p>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-wrap gap-2">
                       {booking.seatNumbers?.map((seat) => (
                         <span
                           key={seat}
-                          className="bg-blue-600/30 border border-blue-500/40 text-blue-300 px-3 py-1 rounded-lg text-sm font-semibold">
-                          {seat}
+                          className="px-3 py-1 bg-bg-elevated border border-border text-text-primary rounded-xl text-xs font-bold"
+                        >
+                          💺 {seat}
                         </span>
                       ))}
                     </div>
                   </div>
 
-                  {/* Bottom Bar */}
-                  <div className="border-t border-slate-700 mt-6 pt-4 flex flex-wrap justify-between items-center gap-4">
+                  {/* Footer Bar: Total & Cancel action */}
+                  <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-gray-400">
+                      <p className="text-xs text-text-muted font-medium uppercase tracking-wider">
                         Total Amount Paid
                       </p>
-                      <p className="text-2xl font-bold text-red-500 mt-1">
+                      <p className="text-2xl font-black text-accent-primary mt-0.5">
                         ₹{booking.totalAmount}
                       </p>
                     </div>
 
-                    {canCancel && (
-                      <button
-                        onClick={() => handleCancelBooking(booking.bookingId)}
-                        disabled={cancellingId === booking.bookingId}
-                        className="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/50 px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-50">
-                        {cancellingId === booking.bookingId
-                          ? "Cancelling..."
-                          : "Cancel Booking"}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {canCancel && (
+                        <button
+                          onClick={() => handleCancelBooking(booking.bookingId)}
+                          disabled={cancellingId === booking.bookingId}
+                          className="px-4 py-2.5 bg-accent-primary/10 hover:bg-accent-primary border border-accent-primary/30 text-accent-primary hover:text-white rounded-xl text-xs font-bold transition disabled:opacity-50"
+                        >
+                          {cancellingId === booking.bookingId
+                            ? "Cancelling..."
+                            : "Cancel Reservation"}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

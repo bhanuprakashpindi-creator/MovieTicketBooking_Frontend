@@ -16,12 +16,14 @@ function AdminDashboard() {
     revenue: 0,
     confirmedBookings: 0,
   });
+
   const [loadingMetrics, setLoadingMetrics] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
 
   const fetchDashboardMetrics = async () => {
     try {
       setLoadingMetrics(true);
+
       const results = await Promise.allSettled([
         getAllMovies(0, 1000),
         getAllTheaters(),
@@ -59,21 +61,17 @@ function AdminDashboard() {
         showCount = showsRes.value?.data?.length || 0;
       }
 
-      // Extract bookings & calculate revenue
+      // Extract bookings and calculate revenue
       let bookingCount = 0;
       let revenue = 0;
       let confirmedCount = 0;
+
       if (bookingsRes.status === "fulfilled") {
         const bookingsList = bookingsRes.value?.data || [];
         bookingCount = bookingsList.length;
-        const confirmed = bookingsList.filter(
-          (b) => b.bookingStatus === "CONFIRMED"
-        );
+        const confirmed = bookingsList.filter((b) => b.bookingStatus === "CONFIRMED");
         confirmedCount = confirmed.length;
-        revenue = confirmed.reduce(
-          (sum, b) => sum + (Number(b.totalAmount) || 0),
-          0
-        );
+        revenue = confirmed.reduce((sum, b) => sum + (Number(b.totalAmount) || 0), 0);
       }
 
       setMetrics({
@@ -85,6 +83,7 @@ function AdminDashboard() {
         revenue,
         confirmedBookings: confirmedCount,
       });
+
       setLastRefreshed(new Date().toLocaleTimeString());
     } catch (err) {
       console.error("Error aggregating admin metrics:", err);
@@ -105,8 +104,7 @@ function AdminDashboard() {
       path: "/admin/movies",
       count: metrics.movies,
       countLabel: "Movies in Catalogue",
-      color: "from-blue-500/20 to-blue-600/5",
-      badgeColor: "bg-blue-500/20 text-blue-400 border-blue-500/40",
+      badgeColor: "bg-accent-primary/10 text-accent-primary border-accent-primary/30",
       actionText: "Manage Movies",
     },
     {
@@ -116,8 +114,7 @@ function AdminDashboard() {
       path: "/admin/theaters",
       count: metrics.theaters,
       countLabel: "Active Theaters",
-      color: "from-emerald-500/20 to-emerald-600/5",
-      badgeColor: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
+      badgeColor: "bg-accent-emerald/10 text-accent-emerald border-accent-emerald/30",
       actionText: "Manage Venues",
     },
     {
@@ -127,8 +124,7 @@ function AdminDashboard() {
       path: "/admin/screens",
       count: metrics.screens,
       countLabel: "Screens Configured",
-      color: "from-purple-500/20 to-purple-600/5",
-      badgeColor: "bg-purple-500/20 text-purple-400 border-purple-500/40",
+      badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30",
       actionText: "Manage Screens",
     },
     {
@@ -136,10 +132,9 @@ function AdminDashboard() {
       icon: "💺",
       description: "Visual screen grid architect, tier pricing (Regular/Recliner), and batch generator.",
       path: "/admin/seats",
-      count: "Grid Designer",
-      countLabel: "Visual Layouts",
-      color: "from-amber-500/20 to-amber-600/5",
-      badgeColor: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+      count: "Visual Designer",
+      countLabel: "Layout Generator",
+      badgeColor: "bg-accent-gold/10 text-accent-gold border-accent-gold/30",
       actionText: "Design Layouts",
     },
     {
@@ -149,202 +144,204 @@ function AdminDashboard() {
       path: "/admin/shows",
       count: metrics.shows,
       countLabel: "Scheduled Shows",
-      color: "from-rose-500/20 to-rose-600/5",
-      badgeColor: "bg-rose-500/20 text-rose-400 border-rose-500/40",
+      badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
       actionText: "Schedule Shows",
     },
     {
       title: "Bookings & Audits",
-      icon: "📊",
+      icon: "📋",
       description: "Track customer transactions, audit reservations, and process ticket cancellations.",
       path: "/admin/bookings",
       count: metrics.bookings,
       countLabel: "Total Bookings",
-      color: "from-indigo-500/20 to-indigo-600/5",
-      badgeColor: "bg-indigo-500/20 text-indigo-400 border-indigo-500/40",
+      badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
       actionText: "Audit Bookings",
     },
   ];
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-slate-900 text-white px-6 py-12">
-      <div className="max-w-7xl mx-auto space-y-10">
+    <div className="min-h-screen bg-bg-primary text-text-primary px-4 sm:px-8 py-8 sm:py-10">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Top Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border">
           <div>
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
-              <p className="text-yellow-400 text-sm font-semibold uppercase tracking-wider">
+              <span className="h-2 w-2 rounded-full bg-accent-emerald animate-pulse" />
+              <p className="text-accent-gold text-xs font-bold uppercase tracking-wider">
                 System Administration Hub
               </p>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight mt-1">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-text-primary mt-1">
               Admin Command Center
             </h1>
-            <p className="text-gray-400 mt-2 max-w-2xl text-sm leading-relaxed">
-              Real-time oversight of movies, multiplexes, auditoriums, seating maps, show schedules, and customer revenue.
+            <p className="text-text-muted mt-1 text-sm">
+              Real-time oversight of movies, cinemas, screens, schedules, and revenue.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {lastRefreshed && (
-              <span className="text-xs text-gray-500 hidden sm:inline">
+              <span className="text-xs text-text-muted hidden sm:inline">
                 Synced at {lastRefreshed}
               </span>
             )}
             <button
               onClick={fetchDashboardMetrics}
               disabled={loadingMetrics}
-              className="bg-slate-800 hover:bg-slate-700 text-gray-300 border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition flex items-center gap-2 disabled:opacity-50">
+              className="px-4 py-2 bg-bg-surface hover:bg-bg-elevated border border-border text-text-primary rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 disabled:opacity-50"
+            >
               <span className={loadingMetrics ? "animate-spin" : ""}>🔄</span>
-              {loadingMetrics ? "Refreshing..." : "Refresh Metrics"}
+              <span>{loadingMetrics ? "Syncing..." : "Refresh Metrics"}</span>
             </button>
           </div>
         </div>
 
         {/* Executive KPI Stats Banner */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/5 rounded-full blur-2xl"></div>
-            <span className="text-xs uppercase tracking-wider font-semibold text-gray-400">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Revenue */}
+          <div className="bg-bg-surface border border-border rounded-2xl p-6 shadow-card">
+            <span className="text-xs uppercase tracking-wider font-semibold text-text-muted">
               Total Revenue
             </span>
-            <p className="text-3xl font-black text-yellow-400 mt-2">
+            <p className="text-3xl font-black text-accent-gold mt-2">
               {loadingMetrics ? (
-                <span className="inline-block w-24 h-8 bg-slate-700 animate-pulse rounded"></span>
+                <span className="inline-block w-24 h-8 bg-bg-elevated animate-pulse rounded" />
               ) : (
                 `₹${metrics.revenue.toLocaleString()}`
               )}
             </p>
-            <span className="text-xs text-gray-400 mt-1 block">
-              From confirmed customer bookings
+            <span className="text-xs text-text-muted mt-1 block">
+              From confirmed bookings
             </span>
           </div>
 
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl"></div>
-            <span className="text-xs uppercase tracking-wider font-semibold text-gray-400">
-              Confirmed Reservations
+          {/* Confirmed Reservations */}
+          <div className="bg-bg-surface border border-border rounded-2xl p-6 shadow-card">
+            <span className="text-xs uppercase tracking-wider font-semibold text-text-muted">
+              Confirmed Bookings
             </span>
-            <p className="text-3xl font-black text-green-400 mt-2">
+            <p className="text-3xl font-black text-accent-emerald mt-2">
               {loadingMetrics ? (
-                <span className="inline-block w-16 h-8 bg-slate-700 animate-pulse rounded"></span>
+                <span className="inline-block w-16 h-8 bg-bg-elevated animate-pulse rounded" />
               ) : (
                 metrics.confirmedBookings
               )}
             </p>
-            <span className="text-xs text-gray-400 mt-1 block">
-              {metrics.bookings - metrics.confirmedBookings} cancellations processed
+            <span className="text-xs text-text-muted mt-1 block">
+              {metrics.bookings - metrics.confirmedBookings} cancellations recorded
             </span>
           </div>
 
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"></div>
-            <span className="text-xs uppercase tracking-wider font-semibold text-gray-400">
-              Active Multiplexes
+          {/* Theaters */}
+          <div className="bg-bg-surface border border-border rounded-2xl p-6 shadow-card">
+            <span className="text-xs uppercase tracking-wider font-semibold text-text-muted">
+              Active Cinemas
             </span>
             <p className="text-3xl font-black text-blue-400 mt-2">
               {loadingMetrics ? (
-                <span className="inline-block w-12 h-8 bg-slate-700 animate-pulse rounded"></span>
+                <span className="inline-block w-12 h-8 bg-bg-elevated animate-pulse rounded" />
               ) : (
                 metrics.theaters
               )}
             </p>
-            <span className="text-xs text-gray-400 mt-1 block">
+            <span className="text-xs text-text-muted mt-1 block">
               Across {metrics.screens} auditoriums
             </span>
           </div>
 
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl"></div>
-            <span className="text-xs uppercase tracking-wider font-semibold text-gray-400">
-              Live Showtimes
+          {/* Shows */}
+          <div className="bg-bg-surface border border-border rounded-2xl p-6 shadow-card">
+            <span className="text-xs uppercase tracking-wider font-semibold text-text-muted">
+              Scheduled Shows
             </span>
-            <p className="text-3xl font-black text-rose-400 mt-2">
+            <p className="text-3xl font-black text-accent-primary mt-2">
               {loadingMetrics ? (
-                <span className="inline-block w-12 h-8 bg-slate-700 animate-pulse rounded"></span>
+                <span className="inline-block w-12 h-8 bg-bg-elevated animate-pulse rounded" />
               ) : (
                 metrics.shows
               )}
             </p>
-            <span className="text-xs text-gray-400 mt-1 block">
-              Screening {metrics.movies} catalogue titles
+            <span className="text-xs text-text-muted mt-1 block">
+              Featuring {metrics.movies} movie titles
             </span>
           </div>
         </div>
 
-        {/* Quick Actions Shortcuts */}
-        <div className="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
+        {/* Quick Operations Bar */}
+        <div className="bg-bg-surface border border-border rounded-2xl p-5 shadow-card">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-3">
             ⚡ Quick Operations
           </h2>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             <Link
               to="/admin/movies"
-              className="bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-1.5 shadow-md">
+              className="bg-accent-gold hover:bg-yellow-400 text-bg-primary font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm"
+            >
               <span>+</span> Add Movie
             </Link>
             <Link
               to="/admin/theaters"
-              className="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition border border-slate-600">
+              className="bg-bg-elevated hover:bg-bg-surface border border-border text-text-primary font-semibold px-4 py-2 rounded-xl text-xs transition"
+            >
               <span>+</span> Add Theater
             </Link>
             <Link
               to="/admin/shows"
-              className="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition border border-slate-600">
+              className="bg-bg-elevated hover:bg-bg-surface border border-border text-text-primary font-semibold px-4 py-2 rounded-xl text-xs transition"
+            >
               <span>+</span> Schedule Show
             </Link>
             <Link
               to="/admin/seats"
-              className="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition border border-slate-600">
+              className="bg-bg-elevated hover:bg-bg-surface border border-border text-text-primary font-semibold px-4 py-2 rounded-xl text-xs transition"
+            >
               <span>💺</span> Seat Generator
             </Link>
             <Link
               to="/admin/bookings"
-              className="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-4 py-2 rounded-xl text-sm transition border border-slate-600">
-              <span>📊</span> Audit Bookings
+              className="bg-bg-elevated hover:bg-bg-surface border border-border text-text-primary font-semibold px-4 py-2 rounded-xl text-xs transition"
+            >
+              <span>📋</span> Audit Bookings
             </Link>
           </div>
         </div>
 
-        {/* Core Administrative Modules Grid */}
+        {/* Core Administrative Modules */}
         <div>
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
             <span>⚙️</span> Management Modules
           </h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {adminModules.map((mod) => (
               <Link
                 key={mod.title}
                 to={mod.path}
-                className="group relative bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 hover:border-yellow-400/50 p-6 rounded-2xl transition duration-300 hover:-translate-y-1 shadow-lg hover:shadow-yellow-400/5 flex flex-col justify-between">
+                className="group bg-bg-surface hover:bg-bg-elevated border border-border hover:border-accent-gold/40 p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-card flex flex-col justify-between"
+              >
                 <div>
                   <div className="flex items-start justify-between mb-4">
-                    <div className="text-4xl group-hover:scale-110 transition duration-300">
+                    <span className="text-3xl group-hover:scale-110 transition duration-200">
                       {mod.icon}
-                    </div>
+                    </span>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold border ${mod.badgeColor}`}>
-                      {loadingMetrics && typeof mod.count === "number" ? "..." : mod.count}{" "}
-                      {typeof mod.count === "number" ? "" : ""}
+                      className={`px-3 py-1 rounded-full text-xs font-bold border ${mod.badgeColor}`}
+                    >
+                      {loadingMetrics && typeof mod.count === "number" ? "..." : mod.count}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-white group-hover:text-yellow-400 transition mb-2">
+                  <h3 className="text-lg font-bold text-text-primary group-hover:text-accent-gold transition mb-2">
                     {mod.title}
                   </h3>
-
-                  <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                  <p className="text-text-muted text-xs sm:text-sm leading-relaxed mb-6">
                     {mod.description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-700/60 flex items-center justify-between text-sm">
-                  <span className="text-xs text-gray-500 font-medium">
-                    {mod.countLabel}
-                  </span>
-                  <span className="text-yellow-400 font-semibold group-hover:translate-x-1 transition duration-200 flex items-center gap-1">
+                <div className="pt-4 border-t border-border flex items-center justify-between text-xs">
+                  <span className="text-text-muted font-medium">{mod.countLabel}</span>
+                  <span className="text-accent-gold font-bold group-hover:translate-x-1 transition flex items-center gap-1">
                     {mod.actionText} →
                   </span>
                 </div>

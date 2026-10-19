@@ -7,6 +7,7 @@ const api = axios.create({
   },
 });
 
+// Attach JWT to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -19,7 +20,49 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
+  }
+);
+
+// Handle common API errors
+api.interceptors.response.use(
+  (response) => {
+    return response;
   },
+  (error) => {
+    if (!error.response) {
+      console.error("Network error:", error.message);
+      return Promise.reject(error);
+    }
+
+    const { status } = error.response;
+
+    if (status === 401) {
+      console.warn("Session expired or token is invalid");
+
+      localStorage.removeItem("token");
+
+      // Redirect to login
+      window.location.href = "/login";
+    }
+
+    if (status === 403) {
+      console.warn("Access denied");
+    }
+
+    if (status === 404) {
+      console.warn("Resource not found");
+    }
+
+    if (status === 409) {
+      console.warn("Conflict occurred");
+    }
+
+    if (status >= 500) {
+      console.error("Server error");
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default api;

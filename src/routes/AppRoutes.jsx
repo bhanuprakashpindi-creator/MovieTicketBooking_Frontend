@@ -14,31 +14,41 @@ import MovieDetails from "../pages/movie/MovieDetails";
 
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
+
 import Theaters from "../pages/theater/Theaters";
 import Shows from "../pages/show/Shows";
 import TheaterShows from "../pages/theater/TheaterShows";
 import Seats from "../pages/seat/Seats";
+
 import BookingConfirmation from "../pages/booking/BookingConfirmation";
 import BookingSuccess from "../pages/booking/BookingSuccess";
 import MyBookings from "../pages/booking/MyBookings";
+
 import AdminMovies from "../pages/admin/AdminMovies";
 import AdminTheaters from "../pages/admin/AdminTheaters";
 import AdminScreens from "../pages/admin/AdminScreens";
 import AdminSeats from "../pages/admin/AdminSeats";
 import AdminShows from "../pages/admin/AdminShows";
 import AdminBookings from "../pages/admin/AdminBookings";
+
+import AdminLayout from "../components/admin/AdminLayout";
+import NotFound from "../pages/NotFound";
+
 function AppRoutes() {
   return (
     <Routes>
-      {/* Home */}
+
+      {/* ================= HOME ================= */}
       <Route path="/" element={<Home />} />
 
-      {/* Authentication */}
+
+      {/* ================= AUTHENTICATION ================= */}
       <Route path="/login" element={<Login />} />
 
       <Route path="/register" element={<Register />} />
 
-      {/* Movies */}
+
+      {/* ================= USER MOVIES ================= */}
       <Route
         path="/movies"
         element={
@@ -56,7 +66,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* User */}
+
+
+      {/* ================= USER PROFILE ================= */}
       <Route
         path="/profile"
         element={
@@ -66,16 +78,8 @@ function AppRoutes() {
         }
       />
 
-      {/* Admin */}
-      <Route
-        path="/admin"
-        element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        }
-      />
-      {/* {Theaters} */}
+
+      {/* ================= USER THEATERS ================= */}
       <Route
         path="/movies/:movieId/theaters"
         element={
@@ -84,7 +88,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* {Shows} */}
+
+
+      {/* ================= USER SHOWS ================= */}
       <Route
         path="/movies/:movieId/shows"
         element={
@@ -93,7 +99,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* {TheaterShows} */}
+
       <Route
         path="/movies/:movieId/theaters/:theaterId"
         element={
@@ -102,7 +108,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* {Seats} */}
+
+
+      {/* ================= USER SEATS ================= */}
       <Route
         path="/shows/:showId"
         element={
@@ -111,7 +119,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* {BookingConfirmation} */}
+
+
+      {/* ================= BOOKING ================= */}
       <Route
         path="/booking/:showId"
         element={
@@ -120,7 +130,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* {BookingSuccess} */}
+
       <Route
         path="/booking/success/:bookingId"
         element={
@@ -129,62 +139,115 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      {/* MyBookings */}
+
       <Route
         path="/my-bookings"
         element={
           <ProtectedRoute>
             <MyBookings />
           </ProtectedRoute>
-        }></Route>
+        }
+      />
+
+
+      {/* ================================================= */}
+      {/* ================= ADMIN SECTION ================= */}
+      {/* ================================================= */}
+
+
+      {/* Admin Dashboard */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+
+
+      {/* Admin Movies */}
       <Route
         path="/admin/movies"
         element={
           <AdminRoute>
-            <AdminMovies />
+            <AdminLayout>
+              <AdminMovies />
+            </AdminLayout>
           </AdminRoute>
         }
       />
+
+
+      {/* Admin Theaters */}
       <Route
         path="/admin/theaters"
         element={
           <AdminRoute>
-            <AdminTheaters />
+            <AdminLayout>
+              <AdminTheaters />
+            </AdminLayout>
           </AdminRoute>
         }
       />
+
+
+      {/* Admin Screens */}
       <Route
         path="/admin/screens"
         element={
           <AdminRoute>
-            <AdminScreens />
+            <AdminLayout>
+              <AdminScreens />
+            </AdminLayout>
           </AdminRoute>
         }
       />
+
+
+      {/* Admin Seats */}
       <Route
         path="/admin/seats"
         element={
           <AdminRoute>
-            <AdminSeats />
+            <AdminLayout>
+              <AdminSeats />
+            </AdminLayout>
           </AdminRoute>
         }
       />
+
+
+      {/* Admin Shows */}
       <Route
         path="/admin/shows"
         element={
           <AdminRoute>
-            <AdminShows />
+            <AdminLayout>
+              <AdminShows />
+            </AdminLayout>
           </AdminRoute>
         }
       />
+
+
+      {/* Admin Bookings */}
       <Route
         path="/admin/bookings"
         element={
           <AdminRoute>
-            <AdminBookings />
+            <AdminLayout>
+              <AdminBookings />
+            </AdminLayout>
           </AdminRoute>
         }
       />
+
+      {/* ================= 404 NOT FOUND ================= */}
+      <Route path="*" element={<NotFound />} />
+
     </Routes>
   );
 }
