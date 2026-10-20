@@ -83,14 +83,14 @@ function Home() {
     setCurrentSlide(index);
   };
 
-  // Automatic sliding timer (advances every 4.5 seconds)
+  // Automatic sliding timer (advances every 3.5 seconds)
   // Re-runs when currentSlide changes to cleanly reset the timer upon manual interaction
   useEffect(() => {
     if (isPaused || totalSlides <= 1) return;
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    }, 4500);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, [isPaused, totalSlides, currentSlide]);
@@ -153,8 +153,6 @@ function Home() {
           /* Dynamic Multi-Movie Hero Carousel */
           <section
             className="relative overflow-hidden bg-bg-primary border-b border-border select-none outline-none"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onKeyDown={handleKeyDown}
@@ -284,6 +282,8 @@ function Home() {
                 <button
                   type="button"
                   onClick={handlePrev}
+                  onMouseEnter={() => setIsPaused(true)}
+                  onMouseLeave={() => setIsPaused(false)}
                   aria-label="Previous movie slide"
                   className="absolute left-2 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-bg-surface/85 hover:bg-bg-surface text-text-primary hover:text-accent-primary border border-border/80 hover:border-accent-primary/60 shadow-xl backdrop-blur-md flex items-center justify-center transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-primary group cursor-pointer"
                 >
@@ -305,6 +305,8 @@ function Home() {
                 <button
                   type="button"
                   onClick={handleNext}
+                  onMouseEnter={() => setIsPaused(true)}
+                  onMouseLeave={() => setIsPaused(false)}
                   aria-label="Next movie slide"
                   className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-bg-surface/85 hover:bg-bg-surface text-text-primary hover:text-accent-primary border border-border/80 hover:border-accent-primary/60 shadow-xl backdrop-blur-md flex items-center justify-center transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-primary group cursor-pointer"
                 >
@@ -327,6 +329,8 @@ function Home() {
                 <div
                   role="tablist"
                   aria-label="Movie carousel navigation"
+                  onMouseEnter={() => setIsPaused(true)}
+                  onMouseLeave={() => setIsPaused(false)}
                   className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface/80 backdrop-blur-md border border-border/70 max-w-[90vw] overflow-x-auto scrollbar-none"
                 >
                   {featuredMovies.map((movie, index) => {
